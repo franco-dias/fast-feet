@@ -5,11 +5,16 @@
   "license": "MIT",
   "dependencies": {
     "bcryptjs": "^2.4.3",
+    "bee-queue": "^1.2.3",
     "date-fns": "^2.11.1",
+    "dotenv": "^8.2.0",
     "eslint-plugin-prettier": "^3.1.2",
     "express": "^4.17.1",
+    "express-handlebars": "^4.0.0",
     "jsonwebtoken": "^8.5.1",
     "multer": "^1.4.2",
+    "nodemailer": "^6.4.6",
+    "nodemailer-express-handlebars": "^4.0.0",
     "pg": "^7.18.2",
     "pg-hstore": "^2.3.3",
     "prettier": "^2.0.2",
@@ -26,6 +31,8 @@
   },
   "scripts": {
     "dev": "nodemon src/server.js",
-    "debug": "nodemon --inspect src/server.js"
+    "debug": "nodemon --inspect src/server.js",
+    "queue": "nodemon src/queue.js",
+    "queue:debug": "nodemon --inspect src/queue.js"
   }
 }

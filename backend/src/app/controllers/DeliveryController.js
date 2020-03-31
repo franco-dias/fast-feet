@@ -6,6 +6,9 @@ import Recipient from '../models/Recipient';
 import DeliveryMan from '../models/DeliveryMan';
 import File from '../models/File';
 
+import NewDeliveryMail from '../jobs/NewDeliveryMail';
+import Queue from '../../lib/Queue';
+
 class DeliveryController {
   async index(req, res) {
     const { id } = req.query;
@@ -84,12 +87,32 @@ class DeliveryController {
     if (!deliveryMan) {
       return res.status(400).json({ error: 'The delivery man does not exist.' });
     }
+
     const recipient = await Recipient.findByPk(recipient_id);
     if (!recipient) {
       return res.status(400).json({ error: 'The recipient does not exist.' });
     }
 
     const delivery = await Delivery.create(req.body);
+
+
+    await Queue.add(NewDeliveryMail.key, {
+      delivery: {
+        description: delivery.product,
+        deliveryMan: {
+          name: deliveryMan.name,
+          email: deliveryMan.email,
+        },
+        recipient: {
+          name: recipient.name,
+          street: recipient.street,
+          address_number: recipient.address_number,
+          city: recipient.city,
+          state: recipient.state,
+        },
+      },
+    });
+
     return res.json(delivery);
   }
 
