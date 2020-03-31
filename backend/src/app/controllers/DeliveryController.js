@@ -43,6 +43,7 @@ class DeliveryController {
 
     if (!id) {
       const deliveries = await Delivery.findAll({
+        attributes: ['id', 'product', 'canceled_at', 'start_date', 'end_date'],
         include,
       });
       return res.json(deliveries);
@@ -57,6 +58,7 @@ class DeliveryController {
     }
 
     const delivery = await Delivery.findByPk(id, {
+      attributes: ['id', 'product', 'canceled_at', 'start_date', 'end_date'],
       include,
     });
 
@@ -76,7 +78,19 @@ class DeliveryController {
       return res.status(400).json({ error: e.message });
     }
 
-    return res.json({ ok: true });
+    const { deliveryman_id, recipient_id } = req.body;
+
+    const deliveryMan = await DeliveryMan.findByPk(deliveryman_id);
+    if (!deliveryMan) {
+      return res.status(400).json({ error: 'The delivery man does not exist.' });
+    }
+    const recipient = await Recipient.findByPk(recipient_id);
+    if (!recipient) {
+      return res.status(400).json({ error: 'The recipient does not exist.' });
+    }
+
+    const delivery = await Delivery.create(req.body);
+    return res.json(delivery);
   }
 
   async update(req, res) {
