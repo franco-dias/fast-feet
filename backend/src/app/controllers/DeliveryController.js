@@ -122,11 +122,25 @@ class DeliveryController {
       });
     }
 
-    const { deliveryman_id } = req.body;
+    const { deliveryman_id, recipient_id } = req.body;
     if (deliveryman_id && delivery.start_date) {
       return res.status(401).json({
         error: "The package has been collected and can't be edited anymore.",
       });
+    }
+
+    if (deliveryman_id) {
+      const deliveryMan = await DeliveryMan.findByPk(deliveryman_id);
+      if (!deliveryMan) {
+        return res.status(400).json({ error: 'The requested delivery man does not exist.' });
+      }
+    }
+
+    if (recipient_id) {
+      const recipient = await Recipient.findByPk(recipient_id);
+      if (!recipient) {
+        return res.status(400).json({ error: 'The requested recipient does not exist.' });
+      }
     }
 
     const newDelivery = await delivery.update(req.body);
