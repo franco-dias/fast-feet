@@ -87,25 +87,22 @@ class DeliveryHandlingController {
     const schema = yup.object().shape({
       deliveryManId: yup.number(),
       deliveryId: yup.number(),
-      setStart: yup.boolean(),
-      setEnd: yup.boolean(),
-      cancel: yup.boolean(),
+      action: yup.string(),
     });
 
-    const schemaTest = {
-      ...req.params,
-      ...req.body,
-    };
-
     try {
-      await schema.validate(schemaTest);
+      await schema.validate(req.params);
     } catch (e) {
       return res.status(400).json({ error: e.message });
     }
 
-    const { deliveryManId, deliveryId } = req.params;
+    const { deliveryManId, deliveryId, action } = req.params;
 
     // basic verifications
+
+    if (action !== 'collect' && action !== 'finish') {
+      return res.status(400).json({ error: "Action must be 'collect' or 'finish'." });
+    }
 
     const deliveryMan = await DeliveryMan.findByPk(deliveryManId);
     if (!deliveryMan) {
@@ -123,7 +120,7 @@ class DeliveryHandlingController {
       });
     }
 
-    // cancelation verifications
+    // edit verifications
 
     if (delivery.canceled_at || delivery.end_date) {
       return res.status(400).json({
@@ -131,18 +128,11 @@ class DeliveryHandlingController {
       });
     }
 
-    const { setStart, setEnd, cancel } = req.body;
     const currentDate = new Date();
 
-    if (cancel) {
-      await delivery.update({ canceled_at: new Date() });
-      return res.json(delivery);
-    }
+    // collect verifications
 
-
-    // set start verifications
-
-    if (setStart) {
+    if (action === 'collect') {
       if (delivery.start_date) {
         return res.status(400).json({ error: 'The package has already been collected.' });
       }
@@ -155,15 +145,17 @@ class DeliveryHandlingController {
         },
       });
       if (deliveryManDeliveries.length >= 5) {
-        return res.status(401).json({ error: 'You have collected the daily limit of packages.' });
+        return res.status(401).json({
+          error: 'You have already collected the daily limit of packages.',
+        });
       }
       const newDelivery = await delivery.update({ start_date: new Date() });
       return res.json(newDelivery);
     }
 
-    // set end verifications
+    // finish verifications
 
-    if (setEnd && !delivery.start_date) {
+    if (!delivery.start_date) {
       return res.status(401).json({
         error: "Can't set the delivery as finished, because the package was not collected yet.",
       });
@@ -173,6 +165,10 @@ class DeliveryHandlingController {
       return res.status(401).json({
         error: "The delivery end date can't be lower than the start date.",
       });
+    }
+
+    if (!req.file) {
+      return res.status(400).json({ error: 'The recipient signature photo must be provided.' });
     }
 
     const { filename: path, originalname: name } = req.file;
@@ -185,7 +181,6 @@ class DeliveryHandlingController {
       end_date: new Date(),
       signature_id: file.id,
     });
-
 
     return res.json(newDelivery);
   }

@@ -30,7 +30,7 @@ routes.post('/session', SessionController.store);
 
 routes.get('/deliveryman/:deliveryManId/deliveries', DeliveryHandlingController.index);
 routes.put(
-  '/deliveryman/:deliveryManId/deliveries/:deliveryId',
+  '/deliveryman/:deliveryManId/deliveries/:deliveryId/:action',
   upload.single('file'),
   DeliveryHandlingController.update,
 );
