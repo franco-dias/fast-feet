@@ -94,11 +94,65 @@ class DeliveryController {
   }
 
   async update(req, res) {
-    return res.json({ ok: true });
+    const { id } = req.params;
+
+    const schema = yup.object().shape({
+      id: yup.number(),
+    });
+
+    try {
+      await schema.isValid({ id });
+    } catch (e) {
+      return res.status(400).json({ error: e.message });
+    }
+
+    const delivery = await Delivery.findByPk(id);
+    if (!delivery) {
+      return res.status(400).json({ error: 'The delivery does not exist.' });
+    }
+
+    if (delivery.canceled_at) {
+      return res.status(401).json({
+        error: "The delivery has been canceled and can't be edited anymore.",
+      });
+    }
+    if (delivery.end_date) {
+      return res.status(401).json({
+        error: "The package has been delivered and can't be edited anymore.",
+      });
+    }
+
+    const { deliveryman_id } = req.body;
+    if (deliveryman_id && delivery.start_date) {
+      return res.status(401).json({
+        error: "The package has been collected and can't be edited anymore.",
+      });
+    }
+
+    const newDelivery = await delivery.update(req.body);
+    return res.json(newDelivery);
   }
 
   async delete(req, res) {
-    return res.json({ ok: true });
+    const { id } = req.params;
+
+    const schema = yup.object().shape({
+      id: yup.number(),
+    });
+
+    try {
+      await schema.isValid({ id });
+    } catch (e) {
+      return res.status(400).json({ error: e.message });
+    }
+
+    const delivery = await Delivery.findByPk(id);
+    if (!delivery) {
+      return res.status(400).json({ error: 'The delivery does not exist.' });
+    }
+
+    await delivery.destroy();
+    return res.json({ message: 'The delivery has been deleted.' });
   }
 }
 
