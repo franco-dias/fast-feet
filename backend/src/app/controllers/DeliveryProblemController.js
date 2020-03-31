@@ -37,7 +37,7 @@ class DeliveryProblemController {
             ],
           },
         ],
-        // attributes: ['id', 'product', 'start_date', 'end_date', 'canceled_at'],
+        attributes: ['id', 'product', 'start_date', 'end_date', 'canceled_at'],
       });
       return res.json(deliveries);
     }
@@ -86,6 +86,33 @@ class DeliveryProblemController {
 
     const problem = await DeliveryProblem.create(payload);
     return res.json(problem);
+  }
+
+  async delete(req, res) {
+    const schema = yup.object().shape({ id: yup.number() });
+
+    const { deliveryId } = req.params;
+
+    try {
+      await schema.validate({ id: deliveryId });
+    } catch (e) {
+      return res.status(400).json({ error: e.message });
+    }
+
+    const delivery = await Delivery.findByPk(deliveryId);
+    if (!delivery) {
+      return res.status(400).json({ error: 'The requested delivery does not exist.' });
+    }
+
+    if (delivery.end_date) {
+      return res.status(400).json({
+        error: "The delivery has been finished and can't be canceled.",
+      });
+    }
+
+    const newDelivery = await delivery.update({ canceled_at: new Date() });
+
+    return res.json(newDelivery);
   }
 }
 

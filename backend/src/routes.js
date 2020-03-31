@@ -42,6 +42,8 @@ routes.put(
 
 routes.get('/delivery-problems/:deliveryId?', DeliveryProblemController.index);
 routes.post('/delivery-problems/:deliveryId', DeliveryProblemController.store);
+routes.delete('/delivery-problems/:deliveryId/cancel-delivery', DeliveryProblemController.delete);
+
 /* Activate authGuard */
 
 routes.use(authGuard);
