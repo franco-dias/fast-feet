@@ -10,6 +10,7 @@ import RecipientController from './app/controllers/RecipientController';
 import DeliveryManController from './app/controllers/DeliveryManController';
 import DeliveryController from './app/controllers/DeliveryController';
 import DeliveryHandlingController from './app/controllers/DeliveryHandlingController';
+import DeliveryProblemController from './app/controllers/DeliveryProblemController';
 
 import multerConfig from './config/multer';
 
@@ -34,6 +35,13 @@ routes.put(
   upload.single('file'),
   DeliveryHandlingController.update,
 );
+
+/*
+ * Delivery Problem Routes
+*/
+
+routes.get('/delivery-problems/:deliveryId?', DeliveryProblemController.index);
+routes.post('/delivery-problems/:deliveryId', DeliveryProblemController.store);
 /* Activate authGuard */
 
 routes.use(authGuard);
